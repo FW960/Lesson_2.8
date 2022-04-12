@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Editor;
+using System;
 
 namespace Lesson_2._8
 {
@@ -7,6 +8,9 @@ namespace Lesson_2._8
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+
+            FileAndDirEditor reManager = new FileAndDirEditor();
         }
     }
+
 }
