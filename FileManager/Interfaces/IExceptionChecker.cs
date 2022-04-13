@@ -2,9 +2,9 @@
 {
     interface IExceptionChecker
     {
-        void ExceptionCheck(string SourcePath, string DestinationPath);
-        void FileExceptionCheck(string Path);
-        void DirectoryExceptionCheck(string Path);
+        void DirectoryExceptionCheck(string sourcePath, string destinationPath);
+        void FileExceptionCheck(string path);
+        void DirectoryExceptionCheck(string path);
 
     }
 }

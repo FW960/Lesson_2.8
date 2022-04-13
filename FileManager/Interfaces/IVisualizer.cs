@@ -2,7 +2,7 @@
 {
     interface IVisualizer
     {
-        void Show(string Path);
+        void Show(string path);
 
         void Interact();
     }

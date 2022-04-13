@@ -4,16 +4,16 @@ namespace Editor
 {
     internal class ExceptionChecker : IExceptionChecker
     {
-        public void DirectoryExceptionCheck(string Path)
+        public void DirectoryExceptionCheck(string path)
         {
             throw new System.NotImplementedException();
         }
 
-        public void ExceptionCheck(string SourcePath, string DestinationPath)
+        public void DirectoryExceptionCheck(string sourcePath, string destinationPath)
         {
             throw new System.NotImplementedException();
         }
-        public void FileExceptionCheck(string Path)
+        public void FileExceptionCheck(string path)
         {
             throw new System.NotImplementedException();
         }
