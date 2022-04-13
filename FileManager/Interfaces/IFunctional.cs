@@ -45,18 +45,32 @@
         /// Enumerates and shows in parent directory all files and directories with specific name parametrs.
         /// </summary>
         /// <param name="params"></param>
-        public string TryFind(string path, string param);
+        public string[] TryFind(string path, string param);
+        public string TryFind(string path, string param, bool toUseInsideOfClass);
 
         /// <summary>
         /// Shows information in txt file about amount of string, paragraphs, letters and etc.
         /// </summary>
         /// <param name="path"></param>
-        public string TxtFileInfo(string path);
+        public int[] TxtFileInfo(string path);
 
         /// <summary>
         /// Type path to file or directory and then attributes you would like to change.
         /// </summary>
         /// <param name="path"></param>
         public void ChangeAttributes(string path, string parametrs);
+
+        /// <summary>
+        /// Type source directory path and destination path to directory where you d' like to move your file.
+        /// </summary>
+        /// <param name="sourcePath"></param>
+        /// <param name="destinationPath"></param>
+        public void MoveFile(string sourcePath, string destinationPath);
+        /// <summary>
+        /// Type source file path and destination path to directory where you d' like to move your file.
+        /// </summary>
+        /// <param name="sourcePath"></param>
+        /// <param name="destinationPath"></param>
+        public void MoveDir(string sourcePath, string destinationPath);
     }
 }

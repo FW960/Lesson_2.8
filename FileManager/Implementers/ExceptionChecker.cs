@@ -1,4 +1,5 @@
 ﻿using Interfaces;
+using System.IO;
 
 namespace Editor
 {
@@ -6,7 +7,10 @@ namespace Editor
     {
         public void DirectoryExceptionCheck(string path)
         {
-            throw new System.NotImplementedException();
+            if (!Directory.Exists(path))
+            {
+
+            }
         }
 
         public void DirectoryExceptionCheck(string sourcePath, string destinationPath)

@@ -34,9 +34,16 @@ namespace Editor
             FileInfo fileInfo = new FileInfo(path);
 
             if (fileInfo.Extension != "")
-                File.Create(fileInfo.FullName);
+            {
+                FileStream fs = new FileStream(path, FileMode.CreateNew);
+
+                fs.Close();
+            }
             else
+            {
                 Directory.CreateDirectory(fileInfo.FullName);
+            }
+                
         }
 
         public void DeleteFile(string path)
@@ -70,70 +77,114 @@ namespace Editor
             return memoryUsed / 1000;
         }
 
-        public string TryFind(string path, string param)
+        public string[] TryFind(string path, string param)
         {
-            string matchedParam = string.Empty;
-
-            string[] dirAndFiles = Directory.EnumerateFileSystemEntries(path).ToArray();
-
-            for (int i = 0; i < dirAndFiles.Length; i++)
-            {
-                FileInfo fileInfo = new FileInfo(dirAndFiles[i]);
-
-                if (Directory.Exists(dirAndFiles[i]))
-                {
-                    if (fileInfo.Name.Contains(param))
-                    {
-                        if (matchedParam == string.Empty)
-                        {
-                            matchedParam = dirAndFiles[i];
-                            continue;
-                        }
-                        matchedParam = $"{matchedParam}+{dirAndFiles[i]}";
-
-                        string isEmptyDir = TryFind(dirAndFiles[i], param);
-
-                        if (isEmptyDir == string.Empty)
-                            continue;
-
-                        matchedParam = $"{matchedParam}+{isEmptyDir}";
-
-                    }
-                    else
-                    {
-                        string isEmptyDir = TryFind(dirAndFiles[i], param);
-
-                        if (isEmptyDir == string.Empty)
-                            continue;
-
-                        if (matchedParam == string.Empty) 
-                        {
-                            matchedParam = isEmptyDir;
-                            continue;
-                        }
-                        matchedParam = $"{matchedParam}+{isEmptyDir}";
-                    }
-                }
-                if (fileInfo.Name.Contains(param))
-                {
-                    if (matchedParam == string.Empty) 
-                    {
-                        matchedParam = dirAndFiles[i];
-                        continue;
-                    }
-                    matchedParam = $"{matchedParam}+{dirAndFiles[i]}"; continue;
-                }
-            }
-            return matchedParam;
+            return TryFind(path, param, true).Split('+');
         }
 
-        public string TxtFileInfo(string path)
+        public int[] TxtFileInfo(string path)
         {
-            throw new NotImplementedException();
+            FileStream fs = File.OpenRead(path);
+
+            int [] txtFileParams = new int[5];
+
+            string fileText = File.ReadAllText(path);
+
+            int numOfWords = 0;
+
+            int numOfStrings = 0;
+
+            int numOfParagraphs = fileText.Split(Environment.NewLine + Environment.NewLine).Length;
+
+            int numOfSymbolsWithSpace = 0;
+
+            int numOfSymbols = 0;
+
+            string[] strings = fileText.Split(Environment.NewLine);
+
+            int lengthOfStringsArray = strings.Length;
+
+            for (int i = 0; i < strings.Length; i++)
+            {
+                if (strings[i] == "")
+                    continue;
+
+                numOfSymbolsWithSpace += strings[i].Length;
+            }
+
+            numOfSymbolsWithSpace += strings.Length;
+
+            for (int i = 0; i < strings.Length; i++)
+            {
+                if (strings[i] == "")
+                    continue;
+
+                numOfStrings++;
+            }
+
+            string[] words = fileText.Split(' ');
+
+            string allWords = string.Empty;
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i].Contains(Environment.NewLine))
+                {
+                    string[] newWords = words[i].Split(Environment.NewLine);
+
+                    for (int j = 0; j < newWords.Length; j++)
+                    {
+                        if (newWords[j] == "")
+                            continue;
+
+                        allWords += $"{newWords[j]} ";
+                    }
+                    continue;
+                }
+                allWords += $"{words[i]} ";
+            }
+
+            words = allWords.Split(' ');
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i] == "")
+                    continue;
+
+                numOfWords++;
+            }
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i] == "")
+                    continue;
+
+                numOfSymbols += words[i].Length;
+            }
+
+            txtFileParams[0] = numOfSymbols;
+
+            txtFileParams[1] = numOfSymbolsWithSpace;
+
+            txtFileParams[2] = numOfWords;
+
+            txtFileParams[3] = numOfStrings;
+
+            txtFileParams[4] = numOfParagraphs;
+
+            fs.Close();
+
+            return txtFileParams;
         }
         public void CopyDir(string sourcePath, string destinationPath)
         {
             string[] dirAndFiles = Directory.EnumerateFileSystemEntries(sourcePath).ToArray();
+
+            FileInfo file = new FileInfo(sourcePath);
+
+            destinationPath = @$"{destinationPath}{file.Name}";
+
+            Directory.CreateDirectory(destinationPath);
 
             for (int i = 0; i < dirAndFiles.Length; i++)
             {
@@ -155,7 +206,7 @@ namespace Editor
 
                     if (File.Exists(copiedFile))
                         File.Delete(copiedFile);
-                    File.Copy(dirAndFiles[i], copiedFile);
+                    File.Copy(dirAndFiles[i], @copiedFile);
                 }
             }
         }
@@ -215,6 +266,84 @@ namespace Editor
 
             }
             return totalMemoryUsed;
+        }
+
+        public string TryFind(string path, string param, bool toUseInsideOfClass)
+        {
+            string matchedParam = string.Empty;
+
+            string[] dirAndFiles = Directory.EnumerateFileSystemEntries(path).ToArray();
+
+            for (int i = 0; i < dirAndFiles.Length; i++)
+            {
+                FileInfo fileInfo = new FileInfo(dirAndFiles[i]);
+
+                if (Directory.Exists(dirAndFiles[i]))
+                {
+                    if (fileInfo.Name.Contains(param))
+                    {
+                        if (matchedParam == string.Empty)
+                        {
+                            matchedParam = dirAndFiles[i];
+                            continue;
+                        }
+                        matchedParam = $"{matchedParam}+{dirAndFiles[i]}";
+
+                        string isEmptyDir = TryFind(dirAndFiles[i], param, true);
+
+                        if (isEmptyDir == string.Empty)
+                            continue;
+
+                        matchedParam = $"{matchedParam}+{isEmptyDir}";
+
+                    }
+                    else
+                    {
+                        string isEmptyDir = TryFind(dirAndFiles[i], param, true);
+
+                        if (isEmptyDir == string.Empty)
+                            continue;
+
+                        if (matchedParam == string.Empty)
+                        {
+                            matchedParam = isEmptyDir;
+                            continue;
+                        }
+                        matchedParam = $"{matchedParam}+{isEmptyDir}";
+                    }
+                }
+                if (fileInfo.Name.Contains(param))
+                {
+                    if (matchedParam == string.Empty)
+                    {
+                        matchedParam = dirAndFiles[i];
+                        continue;
+                    }
+                    matchedParam = $"{matchedParam}+{dirAndFiles[i]}"; continue;
+                }
+            }
+            return matchedParam;
+        }
+
+        public void MoveDir(string sourcePath, string destinationPath)
+        {
+            FileInfo fileInfo = new FileInfo(sourcePath);
+
+            destinationPath = $@"{destinationPath}\{fileInfo.Name}";
+
+            CopyDir(sourcePath, destinationPath);
+
+            DeleteDir(sourcePath);
+        }
+
+        public void MoveFile(string sourcePath, string destinationPath)
+        {
+            FileInfo fileInfo = new FileInfo(sourcePath);
+
+            destinationPath = $@"{destinationPath}\{fileInfo.Name}";
+
+            File.Copy(sourcePath, destinationPath); File.Delete(sourcePath);
+
         }
     }
 }

@@ -13,9 +13,11 @@ namespace Lesson_2._8
 
             FileAndDirEditor editor = new FileAndDirEditor();
 
-            string a = editor.TryFind(@"C:\DRIVER", "txt");
+            string a = @"C:\\Users\\windo\\111\\444";
 
-            string[] b = a.Split('+');
+            Directory.CreateDirectory(a);
+
+            reFileManager.Interact();
 
         }
     }
