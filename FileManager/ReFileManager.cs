@@ -46,7 +46,7 @@ namespace ReFileManager
                     }
                     if (userCommands.Length > 2)
                     {
-                        userCommands[2] = userCommands[1].ToString()[userCommands[1].Length - 1] + userCommands[2];
+                        userCommands[2] = $"{userCommands[1].ToString()[userCommands[1].Length - 1]}:{userCommands[2]}";
 
                         string sourcePath = string.Empty;
 
@@ -62,7 +62,7 @@ namespace ReFileManager
 
                     try
                     {
-                        tryParamSplit = userCommands[1].Split(' ').Last();
+                        tryParamSplit = userCommands[1].Split('/').Last();
 
                         if (tryParamSplit != userCommands[1] && checkCode == 0)
                         {
@@ -121,8 +121,6 @@ namespace ReFileManager
                         {
                             fileAndDirEditor.CopyDir(userCommands[1], userCommands[2]);
 
-                            Show(lastDirSeen);
-
                             FileInfo file = new FileInfo(userCommands[1]);
 
                             Console.WriteLine(@$"Directory {file.Name} sucessefully copied to {userCommands[2]}\{file.Name}.");
@@ -136,8 +134,6 @@ namespace ReFileManager
                         try
                         {
                             fileAndDirEditor.CopyFile(userCommands[1], userCommands[2]);
-
-                            Show(lastDirSeen);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
@@ -153,8 +149,6 @@ namespace ReFileManager
                         {
                             fileAndDirEditor.Create(userCommands[1]);
 
-                            Show(lastDirSeen);
-
                             FileInfo file = new FileInfo(userCommands[1]);
 
                             Console.WriteLine($"{file.Name} sucessefully created.");
@@ -168,8 +162,6 @@ namespace ReFileManager
                         try
                         {
                             fileAndDirEditor.RenameDir(userCommands[1], userCommands[2]);
-
-                            Show(lastDirSeen);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
@@ -185,8 +177,6 @@ namespace ReFileManager
                         {
                             fileAndDirEditor.RenameFile(userCommands[1], userCommands[2]);
 
-                            Show(lastDirSeen);
-
                             FileInfo file = new FileInfo(userCommands[1]);
 
                             Console.WriteLine($"File {file.Name} sucessefully renamed to {userCommands[2]}.");
@@ -200,8 +190,6 @@ namespace ReFileManager
                         try
                         {
                             fileAndDirEditor.DeleteDir(userCommands[1]);
-
-                            Show(lastDirSeen);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
@@ -217,8 +205,6 @@ namespace ReFileManager
                         {
                             fileAndDirEditor.DeleteFile(userCommands[1]);
 
-                            Show(lastDirSeen);
-
                             FileInfo file = new FileInfo(userCommands[1]);
 
                             Console.WriteLine($"File {userCommands[1]} sucessefully deleted.");
@@ -232,8 +218,6 @@ namespace ReFileManager
                         try
                         {
                             double memoryUsed = fileAndDirEditor.DirMemoryUsed(userCommands[1]);
-
-                            Show(lastDirSeen);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
@@ -249,8 +233,6 @@ namespace ReFileManager
                         {
                             double memoryUsed = fileAndDirEditor.FileMemoryUsed(userCommands[1]);
 
-                            Show(lastDirSeen);
-
                             FileInfo file = new FileInfo(userCommands[1]);
 
                             Console.WriteLine($"{memoryUsed}kb used by {file.Name}");
@@ -263,11 +245,9 @@ namespace ReFileManager
                     case "find":
                         try
                         {
-                            string[] allMatches = fileAndDirEditor.TryFind(userCommands[1], userCommands[2]);
+                            string[] allMatches = fileAndDirEditor.TryFind(userCommands[1].ToString(), userCommands[2]).Split('+');
 
-                            Show(lastDirSeen);
-
-                            Console.WriteLine($"All matched files and directories names to parametr: {userCommands[2]}");
+                            Console.WriteLine($"All matched files and directories to parametr: {userCommands[2]}");
 
                             for (int i = 0; i < allMatches.Length; i++)
                             {
@@ -284,8 +264,6 @@ namespace ReFileManager
                         {
                             int[] txtFileParams = fileAndDirEditor.TxtFileInfo(userCommands[1]);
 
-                            Show(lastDirSeen);
-
                             Console.WriteLine($"Number of symbols: {txtFileParams[0]}"); Console.WriteLine($"Number of symbols with space: {txtFileParams[1]}");
                             Console.WriteLine($"Number of words: {txtFileParams[2]}"); Console.WriteLine($"Number of string {txtFileParams[3]}");
                             Console.WriteLine($"Number of paragraphs: {txtFileParams[4]}");
@@ -300,23 +278,19 @@ namespace ReFileManager
                         {
                             fileAndDirEditor.ChangeAttributes(userCommands[1], userCommands[2]);
 
-                            Show(lastDirSeen);
-
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine($"Attributes of {file.Name} change to {userCommands[2]}.");
+                            Console.WriteLine($"Attributes of {file.Name}changed to {userCommands[2]}.");
                         }
-                        catch (Exception ex)
+                        catch 
                         {
-                            Console.WriteLine(ex.Message);
+                            Console.WriteLine("No parametrs to change given.");
                         }
                         break;
                     case "mvFile":
                         try
                         {
                             fileAndDirEditor.MoveFile(userCommands[1], userCommands[2]);
-
-                            Show(lastDirSeen);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
@@ -331,8 +305,6 @@ namespace ReFileManager
                         try
                         {
                             fileAndDirEditor.MoveDir(userCommands[1], userCommands[2]);
-
-                            Show(lastDirSeen);
 
                             Console.WriteLine("Directory sucessesfully moved.");
                         }
@@ -357,6 +329,8 @@ namespace ReFileManager
                             }
                         }
                         break;
+                    case "clear": Console.Clear();
+                        break;
                     default:
                         Console.WriteLine("Unknown command");
                         break;
@@ -367,14 +341,12 @@ namespace ReFileManager
 
         }
 
-        public void Show(string? sourcePath)
+        public void Show(string sourcePath)
         {
             if (sourcePath == null)
                 return;
 
             string[] sourceDir = Directory.EnumerateFileSystemEntries(sourcePath).ToArray();
-
-            Console.Clear();
 
             try
             {

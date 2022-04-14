@@ -45,9 +45,7 @@
         /// Enumerates and shows in parent directory all files and directories with specific name parametrs.
         /// </summary>
         /// <param name="params"></param>
-        public string[] TryFind(string path, string param);
-        public string TryFind(string path, string param, bool toUseInsideOfClass);
-
+        public string TryFind(string path, string param);
         /// <summary>
         /// Shows information in txt file about amount of string, paragraphs, letters and etc.
         /// </summary>
