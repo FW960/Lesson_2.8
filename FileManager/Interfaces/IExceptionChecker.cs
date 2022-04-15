@@ -2,9 +2,10 @@
 {
     interface IExceptionChecker
     {
-        void DirectoryExceptionCheck(string sourcePath, string destinationPath);
-        void FileExceptionCheck(string path);
-        void DirectoryExceptionCheck(string path);
+        void DirectoryAlreadyExistsException(string path);
+        void FileAlreadyExistsException(string path);
+        void BaseFileExceptions(string path);
+        void BaseDirectoryExceptions(string path);
 
     }
 }

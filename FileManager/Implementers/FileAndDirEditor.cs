@@ -7,8 +7,11 @@ namespace Editor
 {
     internal sealed class FileAndDirEditor : IFunctional
     {
+        ExceptionChecker exch = new ExceptionChecker();
         public void ChangeAttributes(string path, string param)
         {
+            exch.BaseFileExceptions(path);
+
             FileInfo fileInfo = new FileInfo(path);
 
             if (string.Compare(param, "Normal", StringComparison.OrdinalIgnoreCase) == 0)
@@ -29,29 +32,14 @@ namespace Editor
             }
         }
 
-        public void Create(string path)
-        {
-            FileInfo fileInfo = new FileInfo(path);
-
-            if (fileInfo.Extension != "")
-            {
-                FileStream fs = new FileStream(path, FileMode.CreateNew);
-
-                fs.Close();
-            }
-            else
-            {
-                Directory.CreateDirectory(fileInfo.FullName);
-            }
-
-        }
-
         public void DeleteFile(string path)
         {
             File.Delete(path);
         }
         public void DeleteDir(string path)
         {
+            exch.BaseDirectoryExceptions(path);
+
             string[] dirAndFiles = Directory.EnumerateFileSystemEntries(path).ToArray();
 
             for (int i = 0; i < dirAndFiles.Length; i++)
@@ -70,6 +58,8 @@ namespace Editor
 
         public double FileMemoryUsed(string path)
         {
+            exch.BaseFileExceptions(path);
+
             FileInfo file = new FileInfo(path);
 
             double memoryUsed = Convert.ToDouble(file.Length);
@@ -77,13 +67,10 @@ namespace Editor
             return memoryUsed / 1000;
         }
 
-        /*public string[] TryFind(string path, string param)
-        {
-            return TryFind(path, param, true).Split('+');
-        }*/
-
         public int[] TxtFileInfo(string path)
         {
+            exch.BaseFileExceptions(path);
+
             FileStream fs = File.OpenRead(path);
 
             int[] txtFileParams = new int[5];
@@ -164,7 +151,7 @@ namespace Editor
 
             txtFileParams[0] = numOfSymbols;
 
-            txtFileParams[1] = numOfSymbolsWithSpace;
+            txtFileParams[1] = numOfSymbolsWithSpace - 1;
 
             txtFileParams[2] = numOfWords;
 
@@ -178,6 +165,8 @@ namespace Editor
         }
         public void CopyDir(string sourcePath, string destinationPath)
         {
+            exch.BaseDirectoryExceptions(sourcePath);
+
             string[] dirAndFiles = Directory.EnumerateFileSystemEntries(sourcePath).ToArray();
 
             DirectoryInfo destinationDirWhereToCopy = new DirectoryInfo(destinationPath);
@@ -187,16 +176,19 @@ namespace Editor
             if (destinationDirWhereToCopy.Parent == null)
                 destinationPath = $@"{destinationPath}{sourceDirFromWhereToCopy.Name}";
             else
-            destinationPath = $@"{destinationPath}\{sourceDirFromWhereToCopy.Name}";
+                destinationPath = $@"{destinationPath}\{sourceDirFromWhereToCopy.Name}";
+
+            exch.DirectoryAlreadyExistsException(destinationPath);
 
             Directory.CreateDirectory(destinationPath);
 
             for (int i = 0; i < dirAndFiles.Length; i++)
             {
+
                 FileInfo toCopy = new FileInfo(dirAndFiles[i]);
 
                 if (toCopy.Extension != "")
-                    File.Copy(dirAndFiles[i], $@"{destinationPath}\{toCopy.Name}");
+                    File.Copy(dirAndFiles[i], $@"{sourceDirFromWhereToCopy.FullName}\{toCopy.Name}");
                 else
                     CopyDir(dirAndFiles[i], destinationPath);
             }
@@ -204,22 +196,61 @@ namespace Editor
 
         public void RenameDir(string dirPath, string renamedDir)
         {
+            exch.BaseDirectoryExceptions(dirPath);
+
             DirectoryInfo directoryInfo = new DirectoryInfo(dirPath);
 
-            string rootDirectoryName = directoryInfo.Parent.ToString();
+            string rootDirectoryName = string.Empty;
 
-            renamedDir = $@"{rootDirectoryName}\{renamedDir}";
+            if (directoryInfo.Root.ToString() == directoryInfo.Parent.ToString())
+            {
+                rootDirectoryName = directoryInfo.Parent.ToString();
 
-            Directory.CreateDirectory(renamedDir);
+                renamedDir = $@"{rootDirectoryName}{renamedDir}";
+            }
+            else
+            {
+                rootDirectoryName = directoryInfo.Parent.ToString();
 
-            CopyDir(dirPath, renamedDir);
+                renamedDir = $@"{rootDirectoryName}\{renamedDir}";
+            }
+
+            exch.DirectoryAlreadyExistsException(renamedDir);
+
+            CopyRenamedDir(dirPath, renamedDir);
+
+            void CopyRenamedDir(string dirPath, string renamedDir)
+            {
+                string[] dirAndFiles = Directory.EnumerateFileSystemEntries(dirPath).ToArray();
+
+                Directory.CreateDirectory(renamedDir);
+
+                for (int i = 0; i < dirAndFiles.Length; i++)
+                {
+                    FileInfo toCopy = new FileInfo(dirAndFiles[i]);
+
+                    if (toCopy.Extension != "")
+                    {
+                        File.Copy(dirAndFiles[i], $@"{renamedDir}\{toCopy.Name}");
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory($@"{renamedDir}\{toCopy.Name}");
+
+                        CopyRenamedDir(dirAndFiles[i], $@"{renamedDir}\{toCopy.Name}");
+                    }
+
+                }
+
+            }
 
             DeleteDir(dirPath);
 
         }
-
         public void RenameFile(string filePath, string renamedFile)
         {
+            exch.BaseFileExceptions(filePath);
+
             FileInfo fileInfo = new FileInfo(filePath);
 
             string fileSourceDirectory = Directory.GetParent(filePath).FullName;
@@ -228,18 +259,28 @@ namespace Editor
 
             renamedFile = @$"{fileSourceDirectory}\{renamedFile}{fileExtension}";
 
+            exch.FileAlreadyExistsException(renamedFile);
+
             File.Copy(filePath, renamedFile);
 
             File.Delete(filePath);
         }
-
         public void CopyFile(string sourcePath, string destinationPath)
         {
+            exch.BaseFileExceptions(sourcePath);
+
+            FileInfo sourceFile = new FileInfo(sourcePath);
+
+            destinationPath = $@"{destinationPath}\{sourceFile.Name}";
+
+            exch.FileAlreadyExistsException(destinationPath);
+
             File.Copy(sourcePath, destinationPath);
         }
-
         public double DirMemoryUsed(string path)
         {
+            exch.BaseDirectoryExceptions(path);
+
             double totalMemoryUsed = 0;
 
             string[] dirAndFiles = Directory.EnumerateFileSystemEntries(path).ToArray();
@@ -258,20 +299,9 @@ namespace Editor
             }
             return totalMemoryUsed;
         }
-
         public string TryFind(string path, string param)
         {
-            DirectoryInfo dirName = new DirectoryInfo(path);
-
-            if (dirName.Parent != null)
-            {
-                DirectoryInfo sourceDirPath = new DirectoryInfo(dirName.Parent.ToString());
-
-                if (sourceDirPath.Root.ToString() == sourceDirPath.FullName.ToString())
-                    path = $@"{sourceDirPath.FullName}{dirName.Name}";
-                else
-                    path = $@"{sourceDirPath.FullName}\{dirName.Name}";
-            }
+            exch.BaseDirectoryExceptions(path);
 
             string matchedToParam = string.Empty;
 
@@ -312,26 +342,38 @@ namespace Editor
             {
                 return string.Empty;
             }
-
-
         }
-
-
         public void MoveDir(string sourcePath, string destinationPath)
         {
             CopyDir(sourcePath, destinationPath);
 
             DeleteDir(sourcePath);
         }
-
         public void MoveFile(string sourcePath, string destinationPath)
         {
+            exch.BaseFileExceptions(sourcePath);
+
             FileInfo fileInfo = new FileInfo(sourcePath);
 
             destinationPath = $@"{destinationPath}\{fileInfo.Name}";
 
+            exch.FileAlreadyExistsException(destinationPath);
+
             File.Copy(sourcePath, destinationPath); File.Delete(sourcePath);
 
+        }
+        public void MakeDirectory(string path)
+        {
+            exch.DirectoryAlreadyExistsException(path);
+
+            Directory.CreateDirectory(path);
+
+        }
+        public void MakeFile(string path)
+        {
+            exch.FileAlreadyExistsException(path);
+
+            File.Create(path);
         }
     }
 }

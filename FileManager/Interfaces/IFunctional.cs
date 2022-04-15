@@ -13,7 +13,9 @@
         /// Type path where you d'like to create dir or file. If you type without extinsion - will be created dir.
         /// </summary>
         /// <param name="path"></param>
-        public void Create(string path);
+        public void MakeDirectory(string path);
+
+        public void MakeFile(string path);
 
         public void DeleteDir(string path);
 

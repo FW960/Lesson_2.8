@@ -10,6 +10,8 @@ namespace ReFileManager
     {
         private string lastDirSeen;
 
+        ExceptionChecker exch = new ExceptionChecker();
+        
         public void Interact()
         {
             string userChoice = string.Empty;
@@ -31,8 +33,8 @@ namespace ReFileManager
                 {
                     int checkCode = 0;
 
-                    userCommand = Console.ReadLine(); // Вся эта огромная логика нужна для того, чтобы команды, файлы и директории можно было бы разделять одним пробелом, если там допустим будет папка C:\Program Files (x86), в которой несколько пробелов.
-
+                    userCommand = Console.ReadLine(); // Вся эта огромная логика нужна для того, чтобы команды, файлы и директории можно было корректно сплитовать.
+                                                      // К примеру если там будет папка C:\Program Files (x86), в которой несколько пробелов.
                     userCommands = userCommand.Split(':');
 
                     string[] splitUserCommands = userCommands[0].Split(' ');
@@ -62,8 +64,8 @@ namespace ReFileManager
 
                     try
                     {
-                        tryParamSplit = userCommands[1].Split('/').Last();
-
+                        tryParamSplit = userCommands[1].Split('*').Last(); // Задача параметров для поиска в методе TryFind идет через '*'.
+                                                                           // Также для того, чтобы переименовать директорию или файл пишется '*', а затем новое название без полного указания пути.
                         if (tryParamSplit != userCommands[1] && checkCode == 0)
                         {
                             string temporaryFirstCommand = userCommands[0];
@@ -80,6 +82,12 @@ namespace ReFileManager
                                 {
                                     if(i == splittedSecondCommandWithParam.Length - 1)
                                         break;
+                                    if (i == splittedSecondCommandWithParam.Length - 2)
+                                    {
+                                        userCommands[1] += $"{splittedSecondCommandWithParam[i]}";
+                                        continue;
+                                    }
+                                        
 
                                     userCommands[1] += $"{splittedSecondCommandWithParam[i]} ";
                                 }
@@ -108,13 +116,21 @@ namespace ReFileManager
                     case "ls":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             Show(userCommands[1]);
 
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex.Message);
                         }
+                        
                         break;
                     case "cpDir":
                         try
@@ -123,7 +139,7 @@ namespace ReFileManager
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine(@$"Directory {file.Name} sucessefully copied to {userCommands[2]}\{file.Name}.");
+                            Console.WriteLine(@$"Directory {file.Name} sucessefully copied to {userCommands[2]}\{file.Name}");
                         }
                         catch (Exception ex)
                         {
@@ -137,21 +153,49 @@ namespace ReFileManager
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine(@$"File {file.Name} sucessefully copied to {userCommands[2]}\{file.Name}.");
+                            Console.WriteLine(@$"File {file.Name} sucessefully copied to {userCommands[2]}\{file.Name}");
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex.Message);
                         }
                         break;
-                    case "cr":
+                    case "touch":
                         try
                         {
-                            fileAndDirEditor.Create(userCommands[1]);
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
+                            fileAndDirEditor.MakeFile(userCommands[1]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine($"{file.Name} sucessefully created.");
+                            Console.WriteLine($"{file.Name} sucessefully created");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                        break;
+                    case "mkDir":
+                        try
+                        {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
+                            fileAndDirEditor.MakeDirectory(userCommands[1]);
+
+                            DirectoryInfo dir = new DirectoryInfo(userCommands[1]);
+
+                            Console.WriteLine($"{dir.Name} sucessefully created");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -161,11 +205,18 @@ namespace ReFileManager
                     case "reDir":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new Exception();
+
                             fileAndDirEditor.RenameDir(userCommands[1], userCommands[2]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine($"Directory {file.Name} sucessefully renamed to {userCommands[2]}.");
+                            Console.WriteLine($"Directory {file.Name} sucessefully renamed to {userCommands[2]}");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -175,11 +226,18 @@ namespace ReFileManager
                     case "reFile":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             fileAndDirEditor.RenameFile(userCommands[1], userCommands[2]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine($"File {file.Name} sucessefully renamed to {userCommands[2]}.");
+                            Console.WriteLine($"File {file.Name} sucessefully renamed to {userCommands[2]}");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -189,11 +247,18 @@ namespace ReFileManager
                     case "rmDir":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             fileAndDirEditor.DeleteDir(userCommands[1]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine($"Directory {userCommands[1]} sucessefully deleted.");
+                            Console.WriteLine($"Directory {userCommands[1]} sucessefully deleted");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -203,11 +268,18 @@ namespace ReFileManager
                     case "rmFile":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             fileAndDirEditor.DeleteFile(userCommands[1]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine($"File {userCommands[1]} sucessefully deleted.");
+                            Console.WriteLine($"File {userCommands[1]} sucessefully deleted");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -217,11 +289,18 @@ namespace ReFileManager
                     case "memDir":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             double memoryUsed = fileAndDirEditor.DirMemoryUsed(userCommands[1]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
                             Console.WriteLine($"{memoryUsed}kb used by {file.Name}");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -231,28 +310,48 @@ namespace ReFileManager
                     case "memFile":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             double memoryUsed = fileAndDirEditor.FileMemoryUsed(userCommands[1]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
                             Console.WriteLine($"{memoryUsed}kb used by {file.Name}");
                         }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
+                        }
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex.Message);
                         }
                         break;
-                    case "find":
+                    case "tryFind":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             string[] allMatches = fileAndDirEditor.TryFind(userCommands[1].ToString(), userCommands[2]).Split('+');
 
-                            Console.WriteLine($"All matched files and directories to parametr: {userCommands[2]}");
+                            if (allMatches[0] == "")
+                            {
+                                Console.WriteLine("No matches found");
+                                break;
+                            }
+
+                            Console.WriteLine($"{allMatches.Length-1} matched files and directories to parametr: {userCommands[2]}");
 
                             for (int i = 0; i < allMatches.Length; i++)
                             {
                                 Console.WriteLine(allMatches[i]);
                             }
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -262,11 +361,18 @@ namespace ReFileManager
                     case "txtInfo":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             int[] txtFileParams = fileAndDirEditor.TxtFileInfo(userCommands[1]);
 
                             Console.WriteLine($"Number of symbols: {txtFileParams[0]}"); Console.WriteLine($"Number of symbols with space: {txtFileParams[1]}");
                             Console.WriteLine($"Number of words: {txtFileParams[2]}"); Console.WriteLine($"Number of string {txtFileParams[3]}");
                             Console.WriteLine($"Number of paragraphs: {txtFileParams[4]}");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -276,25 +382,39 @@ namespace ReFileManager
                     case "chAtt":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             fileAndDirEditor.ChangeAttributes(userCommands[1], userCommands[2]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine($"Attributes of {file.Name}changed to {userCommands[2]}.");
+                            Console.WriteLine($"Attributes of {file.Name}changed to {userCommands[2]}");
                         }
-                        catch 
+                        catch (IndexOutOfRangeException)
                         {
-                            Console.WriteLine("No parametrs to change given.");
+                            Console.WriteLine("Type directory path correctly");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
                         }
                         break;
                     case "mvFile":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             fileAndDirEditor.MoveFile(userCommands[1], userCommands[2]);
 
                             FileInfo file = new FileInfo(userCommands[1]);
 
-                            Console.WriteLine(@$"File {file.Name} sucessesfully moved to {userCommands[2]}\{file.Name}.");
+                            Console.WriteLine(@$"File {file.Name} sucessesfully moved to {userCommands[2]}\{file.Name}");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -304,9 +424,16 @@ namespace ReFileManager
                     case "mvDir":
                         try
                         {
+                            if (!userCommands[1].Contains(':'))
+                                throw new IndexOutOfRangeException();
+
                             fileAndDirEditor.MoveDir(userCommands[1], userCommands[2]);
 
-                            Console.WriteLine("Directory sucessesfully moved.");
+                            Console.WriteLine("Directory sucessesfully moved");
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            Console.WriteLine("Type directory path correctly");
                         }
                         catch (Exception ex)
                         {
@@ -341,20 +468,22 @@ namespace ReFileManager
 
         }
 
-        public void Show(string sourcePath)
+        public void Show(string path)
         {
-            if (sourcePath == null)
+            exch.BaseDirectoryExceptions(path);
+
+            if (path == null)
                 return;
 
-            string[] sourceDir = Directory.EnumerateFileSystemEntries(sourcePath).ToArray();
+            string[] sourceDir = Directory.EnumerateFileSystemEntries(path).ToArray();
 
             try
             {
-                string rootPath = Directory.GetParent(sourcePath).ToString();
+                string rootPath = Directory.GetParent(path).ToString();
 
                 string[] rootDir = Directory.EnumerateFileSystemEntries(rootPath).ToArray();
 
-                if ((rootPath + "\\") == sourcePath)
+                if ((rootPath + "\\") == path)
                 {
                     for (int i = 0; i < rootDir.Length; i++)
                     {
@@ -413,7 +542,7 @@ namespace ReFileManager
             {
                 Console.WriteLine("".PadRight(0, ' '));
 
-                lastDirSeen = sourcePath;
+                lastDirSeen = path;
             }
         }
     }
