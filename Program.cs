@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Editor;
+using ReFileManager;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace Lesson_2._8
 {
@@ -6,7 +10,12 @@ namespace Lesson_2._8
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            FileManager reFileManager = new FileManager();
+
+            reFileManager.Interact();
+
         }
     }
+
+
 }
